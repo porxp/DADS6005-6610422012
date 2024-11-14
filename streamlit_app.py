@@ -123,8 +123,10 @@ with col2:
         width=900,  # Set width for the graph
         height=400  # Adjust height
     )
-    fig2.update_traces(textinfo='none')  # Remove numbers from the pie chart
+    fig2.update_traces(textinfo='percent+label')  # Display percentages and labels in the pie chart
+    fig2.update_layout(showlegend=False)  # Remove the legend
     st.plotly_chart(fig2, use_container_width=True)
+
 
 # Create the second row layout
 col3, col4 = st.columns([3, 3])  # Adjust proportions to allocate more space
@@ -144,17 +146,38 @@ with col4:
     # Use Plotly for interactive chart (Graph 4)
     st.markdown("<h3 style='font-size: 20px;'>4. Total Viewtime by Region</h3>", unsafe_allow_html=True)
     # Ensure sorting is applied in ascending order
-    df_viewtime_region_sorted = df_viewtime_region_filtered.sort_values(by='TotalViewTime', ascending=True)  # Change to ascending=True
-    fig4 = px.bar(
+    df_viewtime_region_sorted = df_viewtime_region_filtered.sort_values(by='TotalViewTime', ascending=True)
+
+    # Custom formatting function for TotalViewTime
+    def format_value(value):
+        if value >= 1e9:
+            return f"{value / 1e9:.2f}B"  # Format as billions
+        elif value >= 1e6:
+            return f"{value / 1e6:.2f}M"  # Format as millions
+        elif value >= 1e4:
+            return f"{value / 1e4:.2f}K"  # Format as ten-thousands
+        else:
+            return f"{value:.2f}"  # No unit, display as is
+
+    # Apply formatting to a new column for display
+    df_viewtime_region_sorted['FormattedTotalViewTime'] = df_viewtime_region_sorted['TotalViewTime'].apply(format_value)
+
+    # Create TreeMap with formatted values
+    fig4_treemap = px.treemap(
         df_viewtime_region_sorted,
-        y='REGIONID',
-        x='TotalViewTime',
-        color=None,  # Remove the color by REGIONID
-        labels={'REGIONID': 'Region ID', 'TotalViewTime': 'Total Viewtime'},  # Corrected label key
+        path=['REGIONID'],
+        values='TotalViewTime',
+        labels={'TotalViewTime': 'Total View Time', 'REGIONID': 'Region ID'},
         title='',
-        orientation='h',  # Horizontal bar chart
-        width=900,  # Set width for the graph
-        height=400  # Adjust height
+        width=900,
+        height=400
     )
-    fig4.update_traces(texttemplate=None)  # Remove numbers from the bars
-    st.plotly_chart(fig4, use_container_width=True)
+
+    # Display formatted values in the chart
+    fig4_treemap.update_traces(
+        texttemplate='%{label}<br>Total View Time: %{customdata}',
+        hovertemplate='%{label}<br>Total View Time: %{customdata}',
+        customdata=df_viewtime_region_sorted['FormattedTotalViewTime']
+    )
+    
+    st.plotly_chart(fig4_treemap, use_container_width=True)
