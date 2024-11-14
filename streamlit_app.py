@@ -91,89 +91,78 @@ curs.execute(query4)
 df_viewtime_region = pd.DataFrame(curs, columns=[item[0] for item in curs.description])
 df_viewtime_region_filtered = df_viewtime_region[df_viewtime_region['REGIONID'].isin(selected_regions)]
 
-# Create the first row layout with wider columns
-col1, col2 = st.columns([3, 3])  # Adjust proportions to allocate more space
+# Adjusted row layout to reduce height
+col1, col2 = st.columns([1, 1])  # Balanced columns for better fitting
 
 with col1:
-    # Horizontal bar chart sorted by count (Graph 1)
-    st.markdown("<h3 style='font-size: 20px;'>1. Distribution of Activities</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 18px;'>1. Distribution of Activities</h3>", unsafe_allow_html=True)
     fig1 = px.bar(
         df_activities,
         y='ACTIVITY',
         x='Count',
         color='ACTIVITY',
         labels={'ACTIVITY': 'Activity Type', 'Count': 'Count'},
-        title='',  # Remove the title
-        orientation='h',  # Horizontal bar chart
-        width=900,  # Set width for the graph
-        height=400  # Adjust height to minimize white space
+        title='',
+        orientation='h',
+        width=600,
+        height=300  # Reduced height
     )
     fig1.update_layout(showlegend=False)
     st.plotly_chart(fig1, use_container_width=True)
 
 with col2:
-    # Pie chart for total view time by gender (Graph 2)
-    st.markdown("<h3 style='font-size: 20px;'>2. Total View Time by Gender</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 18px;'>2. Total View Time by Gender</h3>", unsafe_allow_html=True)
     fig2 = px.pie(
         df_viewtime_gender,
         names='GENDER',
         values='TotalViewTime',
         title='',
-        hole=0.4,  # Optional: Makes it a donut chart
-        width=900,  # Set width for the graph
-        height=400  # Adjust height
+        hole=0.4,
+        width=600,
+        height=300  # Reduced height
     )
-    fig2.update_traces(textinfo='percent+label')  # Display percentages and labels in the pie chart
-    fig2.update_layout(showlegend=False)  # Remove the legend
+    fig2.update_traces(textinfo='percent+label')
+    fig2.update_layout(showlegend=False)
     st.plotly_chart(fig2, use_container_width=True)
 
-
-# Create the second row layout
-col3, col4 = st.columns([3, 3])  # Adjust proportions to allocate more space
+col3, col4 = st.columns([1, 1])
 
 with col3:
-    # Use Plotly for interactive chart (Graph 3)
-    st.markdown("<h3 style='font-size: 20px;'>3. Activity Distribution by Gender</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 18px;'>3. Activity Distribution by Gender</h3>", unsafe_allow_html=True)
     fig3 = px.bar(df_activity_gender_pivot, barmode='stack', labels={'value': 'Count'},
-                  title='',  # Remove the title
-                  width=900,  # Set width for the graph
-                  height=400  # Adjust height
+                  title='',
+                  width=600,
+                  height=300  # Reduced height
     )
-    fig3.update_traces(texttemplate=None)  # Remove numbers from the bars
+    fig3.update_traces(texttemplate=None)
     st.plotly_chart(fig3, use_container_width=True)
 
 with col4:
-    # Use Plotly for interactive chart (Graph 4)
-    st.markdown("<h3 style='font-size: 20px;'>4. Total Viewtime by Region</h3>", unsafe_allow_html=True)
-    # Ensure sorting is applied in ascending order
+    st.markdown("<h3 style='font-size: 18px;'>4. Total Viewtime by Region</h3>", unsafe_allow_html=True)
     df_viewtime_region_sorted = df_viewtime_region_filtered.sort_values(by='TotalViewTime', ascending=True)
 
-    # Custom formatting function for TotalViewTime
     def format_value(value):
         if value >= 1e9:
-            return f"{value / 1e9:.2f}B"  # Format as billions
+            return f"{value / 1e9:.2f}B"
         elif value >= 1e6:
-            return f"{value / 1e6:.2f}M"  # Format as millions
+            return f"{value / 1e6:.2f}M"
         elif value >= 1e4:
-            return f"{value / 1e4:.2f}K"  # Format as ten-thousands
+            return f"{value / 1e4:.2f}K"
         else:
-            return f"{value:.2f}"  # No unit, display as is
+            return f"{value:.2f}"
 
-    # Apply formatting to a new column for display
     df_viewtime_region_sorted['FormattedTotalViewTime'] = df_viewtime_region_sorted['TotalViewTime'].apply(format_value)
 
-    # Create TreeMap with formatted values
     fig4_treemap = px.treemap(
         df_viewtime_region_sorted,
         path=['REGIONID'],
         values='TotalViewTime',
         labels={'TotalViewTime': 'Total View Time', 'REGIONID': 'Region ID'},
         title='',
-        width=900,
-        height=400
+        width=600,
+        height=300  # Reduced height
     )
 
-    # Display formatted values in the chart
     fig4_treemap.update_traces(
         texttemplate='%{label}<br>Total View Time: %{customdata}',
         hovertemplate='%{label}<br>Total View Time: %{customdata}',
